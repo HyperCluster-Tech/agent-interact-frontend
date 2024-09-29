@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,21 +22,81 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GraduationCap, Code, Globe, Brain } from "lucide-react";
+import { Code, Globe, Brain } from "lucide-react";
+
+interface Question {
+  question: string;
+  options?: string[];
+  correct_answer?: string;
+  model_answer?: string;
+}
+
+interface Evaluation {
+  grade: string;
+  feedback: string;
+}
 
 export default function AssessmentPage() {
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
-  const [question, setQuestion] = useState("");
-  const [answerType, setAnswerType] = useState("mcq");
-  const [answer, setAnswer] = useState("");
+  const [questionType, setQuestionType] = useState("mcq");
+  const [numQuestions, setNumQuestions] = useState(1);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [userAnswer, setUserAnswer] = useState("");
+  const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [showPopup, setShowPopup] = useState(false);
+  const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false); // New state
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would typically send the data to your AI agent for processing
-    console.log({ subject, topic, answerType, answer });
-    setShowPopup(true);
+  const generateQuestions = async () => {
+    try {
+      const response = await axios.post(
+        "https://agent-interact.onrender.com/generate_questions",
+        {
+          topic: subject + topic,
+          question_type: questionType,
+          num_questions: numQuestions,
+        }
+      );
+      console.log(response);
+      setQuestions(response.data.questions);
+      setCurrentQuestionIndex(0);
+      setUserAnswer("");
+      setEvaluation(null);
+      setIsAnswerSubmitted(false);
+    } catch (error) {
+      console.error("Error generating questions:", error);
+    }
+  };
+
+  const submitAnswer = async () => {
+    try {
+      const currentQuestion = questions[currentQuestionIndex];
+      console.log(currentQuestion);
+      const response = await axios.post(
+        "https://agent-interact.onrender.com/evaluate_answer",
+        {
+          question: currentQuestion.question,
+          user_answer: userAnswer,
+          correct_answer:
+            currentQuestion.correct_answer || currentQuestion.model_answer,
+        }
+      );
+      setEvaluation(response.data);
+      setShowPopup(true);
+      setIsAnswerSubmitted(true);
+    } catch (error) {
+      console.error("Error submitting answer:", error);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setUserAnswer("");
+      setEvaluation(null);
+      setIsAnswerSubmitted(false);
+    }
   };
 
   return (
@@ -46,11 +107,11 @@ export default function AssessmentPage() {
       <Card className="max-w-2xl mx-auto border-cyan-200 dark:border-cyan-700 shadow-lg dark:shadow-cyan-900/20">
         <CardHeader className="bg-cyan-50 dark:bg-cyan-900/50 border-b border-cyan-100 dark:border-cyan-800">
           <CardTitle className="text-2xl text-cyan-800 dark:text-cyan-200">
-            Generate a Question
+            Generate Questions
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6 bg-white dark:bg-gray-900">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form className="space-y-6">
             <div className="space-y-2">
               <Label
                 htmlFor="subject"
@@ -63,22 +124,22 @@ export default function AssessmentPage() {
                   <SelectValue placeholder="Select a subject" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="python">
+                  <SelectItem value="python ">
                     <div className="flex items-center">
                       <Code className="mr-2 h-4 w-4" />
                       Python for Computational Problem Solving
                     </div>
                   </SelectItem>
-                  <SelectItem value="web">
+                  <SelectItem value="web dev">
                     <div className="flex items-center">
                       <Globe className="mr-2 h-4 w-4" />
                       Web Technologies
                     </div>
                   </SelectItem>
-                  <SelectItem value="ml">
+                  <SelectItem value="databases ">
                     <div className="flex items-center">
                       <Brain className="mr-2 h-4 w-4" />
-                      Machine Learning
+                      Database Management System
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -105,7 +166,7 @@ export default function AssessmentPage() {
               </Label>
               <RadioGroup
                 defaultValue="mcq"
-                onValueChange={setAnswerType}
+                onValueChange={setQuestionType}
                 className="flex space-x-4"
               >
                 <div className="flex items-center space-x-2">
@@ -130,72 +191,118 @@ export default function AssessmentPage() {
                 </div>
               </RadioGroup>
             </div>
-            {question && (
-              <div className="space-y-2">
-                <Label
-                  htmlFor="question"
-                  className="text-cyan-700 dark:text-cyan-300"
-                >
-                  Generated Question
-                </Label>
-                <p className="mt-1 p-4 bg-cyan-50 dark:bg-cyan-900/30 rounded-md border border-cyan-100 dark:border-cyan-800 text-cyan-800 dark:text-cyan-200">
-                  {question}
-                </p>
-              </div>
-            )}
             <div className="space-y-2">
               <Label
-                htmlFor="answer"
+                htmlFor="numQuestions"
                 className="text-cyan-700 dark:text-cyan-300"
               >
-                Your Answer
+                Number of Questions (max 5)
               </Label>
-              {answerType === "mcq" ? (
-                <RadioGroup onValueChange={setAnswer} className="space-y-2">
-                  {/* Placeholder for MCQ options */}
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem
-                      value="a"
-                      id="a"
-                      className="text-cyan-600 dark:text-cyan-400"
-                    />
-                    <Label htmlFor="a" className="dark:text-cyan-200">
-                      Option A
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem
-                      value="b"
-                      id="b"
-                      className="text-cyan-600 dark:text-cyan-400"
-                    />
-                    <Label htmlFor="b" className="dark:text-cyan-200">
-                      Option B
-                    </Label>
-                  </div>
-                </RadioGroup>
-              ) : (
-                <Textarea
-                  id="answer"
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  placeholder="Enter your answer"
-                  className="border-cyan-200 dark:border-cyan-700 focus:ring-cyan-500 dark:focus:ring-cyan-400 dark:bg-gray-800 dark:text-cyan-100"
-                />
-              )}
+              <Input
+                id="numQuestions"
+                type="number"
+                min="1"
+                max="5"
+                value={numQuestions}
+                onChange={(e) => setNumQuestions(parseInt(e.target.value, 10))}
+                className="border-cyan-200 dark:border-cyan-700 focus:ring-cyan-500 dark:focus:ring-cyan-400"
+              />
             </div>
+            <Button
+              type="button"
+              onClick={generateQuestions}
+              className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-700 dark:hover:bg-cyan-600 text-white transition-colors duration-300"
+            >
+              Generate Questions
+            </Button>
           </form>
         </CardContent>
-        <CardFooter className="bg-cyan-50 dark:bg-cyan-900/50 border-t border-cyan-100 dark:border-cyan-800 items-center">
-          <Button
-            type="submit"
-            onClick={handleSubmit}
-            className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-700 dark:hover:bg-cyan-600 text-white transition-colors duration-300 mt-4"
-          >
-            <GraduationCap className="mr-2 h-4 w-4" />
-            Submit Answer
-          </Button>
-        </CardFooter>
+        {questions.length > 0 && (
+          <CardContent className="pt-6 bg-white dark:bg-gray-900">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-cyan-700 dark:text-cyan-300">
+                Question {currentQuestionIndex + 1} of {questions.length}
+              </h3>
+              <p className="mt-1 p-4 bg-cyan-50 dark:bg-cyan-900/30 rounded-md border border-cyan-100 dark:border-cyan-800 text-cyan-800 dark:text-cyan-200">
+                {questions[currentQuestionIndex].question}
+              </p>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="answer"
+                  className="text-cyan-700 dark:text-cyan-300"
+                >
+                  Your Answer
+                </Label>
+                {questionType === "mcq" &&
+                questions[currentQuestionIndex]?.options ? (
+                  <RadioGroup
+                    onValueChange={setUserAnswer}
+                    className="space-y-2"
+                  >
+                    {questions[currentQuestionIndex].options.map(
+                      (option, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center space-x-2"
+                        >
+                          <RadioGroupItem
+                            value={option}
+                            id={`option-${index}`}
+                            className="text-cyan-600 dark:text-cyan-400"
+                          />
+                          <Label
+                            htmlFor={`option-${index}`}
+                            className="dark:text-cyan-200"
+                          >
+                            {option}
+                          </Label>
+                        </div>
+                      )
+                    )}
+                  </RadioGroup>
+                ) : (
+                  <Textarea
+                    id="answer"
+                    value={userAnswer}
+                    onChange={(e) => setUserAnswer(e.target.value)}
+                    placeholder="Enter your answer"
+                    className="border-cyan-200 dark:border-cyan-700 focus:ring-cyan-500 dark:focus:ring-cyan-400 dark:bg-gray-800 dark:text-cyan-100"
+                  />
+                )}
+              </div>
+              <Button
+                type="button"
+                onClick={submitAnswer}
+                className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-700 dark:hover:bg-cyan-600 text-white transition-colors duration-300"
+              >
+                Submit Answer
+              </Button>
+              {isAnswerSubmitted &&
+                currentQuestionIndex < questions.length - 1 && (
+                  <Button
+                    type="button"
+                    onClick={handleNextQuestion}
+                    className="ml-4 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-cyan-800 dark:text-cyan-200 transition-colors duration-300"
+                  >
+                    Next Question
+                  </Button>
+                )}
+            </div>
+          </CardContent>
+        )}
+        {evaluation && (
+          <CardFooter className="bg-cyan-50 dark:bg-cyan-900/50 border-t border-cyan-100 dark:border-cyan-800 flex-col items-start">
+            <h3 className="text-lg font-semibold text-cyan-700 dark:text-cyan-300 my-2">
+              Evaluation
+            </h3>
+            <p className="text-cyan-800 dark:text-cyan-200">
+              Grade: {evaluation.grade}
+            </p>
+            <p className="text-cyan-800 dark:text-cyan-200">
+              Feedback: {evaluation.feedback}
+            </p>
+          </CardFooter>
+        )}
       </Card>
       {showPopup && <CoursePopup onClose={() => setShowPopup(false)} />}
     </div>
