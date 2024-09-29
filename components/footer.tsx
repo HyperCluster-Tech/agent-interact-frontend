@@ -7,7 +7,7 @@ export function Footer() {
         <p className="text-center text-sm leading-loose text-muted-foreground">
           Built by{" "}
           <Link
-            href="#"
+            href="https://www.linkedin.com/in/samarth-prakash/"
             target="_blank"
             rel="noreferrer"
             className="font-medium underline underline-offset-4"
@@ -16,7 +16,7 @@ export function Footer() {
           </Link>{" "}
           and{" "}
           <Link
-            href="#"
+            href="https://www.linkedin.com/in/vyomanjain"
             target="_blank"
             rel="noreferrer"
             className="font-medium underline underline-offset-4"
@@ -25,7 +25,7 @@ export function Footer() {
           </Link>
           . The source code is available on{" "}
           <Link
-            href="#"
+            href="https://github.com/RAGsToRichAIs-PESU-IO/agent-interact"
             target="_blank"
             rel="noreferrer"
             className="font-medium underline underline-offset-4"

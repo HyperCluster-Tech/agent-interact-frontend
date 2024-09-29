@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Link from "next/link";
 
 export function CoursePopup({ onClose }: { onClose: () => void }) {
   const [open, setOpen] = useState(true);
@@ -28,15 +29,21 @@ export function CoursePopup({ onClose }: { onClose: () => void }) {
           </DialogDescription>
         </DialogHeader>
         <p className="py-4">
-          Our comprehensive course on Agentic AI will teach you how to build
-          sophisticated AI systems like the one you just interacted with.
+          Our comprehensive course on Retrieval Augmented Generation (RAG) and
+          Agentic AI systems will teach you how to build sophisticated AI
+          systems like the one you just interacted with.
         </p>
         <DialogFooter className="sm:justify-start">
-          <Button type="button" variant="secondary" onClick={handleClose}>
-            Maybe Later
+          <Button
+            type="button"
+            onClick={handleClose}
+            variant="secondary"
+            asChild
+          >
+            <Link href="/faq">Learn More</Link>
           </Button>
           <Button type="button" onClick={handleClose} asChild>
-            <a href="/faq">Learn More</a>
+            <Link href="https://pesu.io/courses/">Enroll Now!</Link>
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -32,24 +32,36 @@ const projects = [
 
 export default function ProjectsPage() {
   return (
-    <div className="container mx-auto py-12 px-4">
-      <h1 className="text-4xl font-bold mb-8 text-center">
-        Our Agentic AI Projects
-      </h1>
-      <div className="gri d gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {projects.map((project, index) => (
-          <Card key={index} className="flex flex-col">
-            <CardHeader>
-              <CardTitle>{project.title}</CardTitle>
-              <CardDescription>{project.description}</CardDescription>
-            </CardHeader>
-            <CardFooter className="mt-auto">
-              <Button asChild className="w-full">
-                <Link href={project.url}>View Project</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+    <div className="min-h-[calc(100vh-8rem)] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-black dark:to-blue-900 text-white py-16 px-4">
+      <div className="container mx-auto">
+        <h1 className="text-5xl font-extrabold pb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-500 animate-pulse">
+          Our Agentic AI Projects
+        </h1>
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {projects.map((project, index) => (
+            <Card
+              key={index}
+              className="dark:bg-gray-800 border border-blue-500/20 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 hover:-translate-y-1"
+            >
+              <CardHeader className="bg-gradient-to-br from-blue-200 to-blue-100 dark:from-gray-700 dark:to-gray-800">
+                <CardTitle className="text-2xl font-bold text-blue-400">
+                  {project.title}
+                </CardTitle>
+                <CardDescription className="dark:text-gray-300">
+                  {project.description}
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="dark:bg-gray-900 p-4">
+                <Button
+                  asChild
+                  className="w-full bg-blue-600 hover:bg-blue-700 transition-colors duration-300"
+                >
+                  <Link href={project.url}>Explore Project</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
