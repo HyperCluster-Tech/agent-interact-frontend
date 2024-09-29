@@ -24,7 +24,7 @@ export function CoursePopup({ onClose }: { onClose: () => void }) {
         <DialogHeader>
           <DialogTitle>Unlock Your AI Potential!</DialogTitle>
           <DialogDescription>
-            You've just experienced a taste of what AI can do. Imagine creating
+            You&apos;ve just experienced a taste of what AI can do. Imagine creating
             your own intelligent agents!
           </DialogDescription>
         </DialogHeader>

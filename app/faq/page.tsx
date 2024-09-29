@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,10 +61,12 @@ export default function FAQPage() {
           };
 
           mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(chunks, { type: "audio/wav" });
-            setAudioBlob(audioBlob);
+            const audioBlob1 = new Blob(chunks, { type: "audio/wav" });
+            setAudioBlob(audioBlob1);
             setIsRecording(false);
-            await sendAudioQuery(audioBlob);
+            if (audioBlob) {
+              await sendAudioQuery(audioBlob);
+            }
           };
 
           mediaRecorder.start();
