@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Code, Globe, Brain } from "lucide-react";
+import { Code, Globe, Brain, Loader } from "lucide-react"; // Import Loader icon
 
 interface Question {
   question: string;
@@ -46,9 +46,12 @@ export default function AssessmentPage() {
   const [userAnswer, setUserAnswer] = useState("");
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [showPopup, setShowPopup] = useState(false);
-  const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false); // New state
+  const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false); // New loading state
 
+  // Function to generate questions
   const generateQuestions = async () => {
+    setLoading(true); // Start loading
     try {
       const response = await axios.post(
         "https://agent-interact.onrender.com/generate_questions",
@@ -66,10 +69,14 @@ export default function AssessmentPage() {
       setIsAnswerSubmitted(false);
     } catch (error) {
       console.error("Error generating questions:", error);
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
+  // Function to submit an answer
   const submitAnswer = async () => {
+    setLoading(true); // Start loading
     try {
       const currentQuestion = questions[currentQuestionIndex];
       console.log(currentQuestion);
@@ -87,6 +94,8 @@ export default function AssessmentPage() {
       setIsAnswerSubmitted(true);
     } catch (error) {
       console.error("Error submitting answer:", error);
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -212,8 +221,13 @@ export default function AssessmentPage() {
               type="button"
               onClick={generateQuestions}
               className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-700 dark:hover:bg-cyan-600 text-white transition-colors duration-300"
+              disabled={loading} // Disable button while loading
             >
-              Generate Questions
+              {loading ? (
+                <Loader className="animate-spin h-5 w-5" />
+              ) : (
+                "Generate Questions"
+              )}
             </Button>
           </form>
         </CardContent>
@@ -274,8 +288,13 @@ export default function AssessmentPage() {
                 type="button"
                 onClick={submitAnswer}
                 className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-700 dark:hover:bg-cyan-600 text-white transition-colors duration-300"
+                disabled={loading} // Disable button while loading
               >
-                Submit Answer
+                {loading ? (
+                  <Loader className="animate-spin h-5 w-5" />
+                ) : (
+                  "Submit Answer"
+                )}
               </Button>
               {isAnswerSubmitted &&
                 currentQuestionIndex < questions.length - 1 && (

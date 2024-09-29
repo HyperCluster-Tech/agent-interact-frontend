@@ -11,22 +11,25 @@ import { Button } from "@/components/ui/button";
 
 const projects = [
   {
-    title: "AI Writing Assistant",
+    title: "Vehicular Technician Assistant",
     description:
-      "An intelligent agent that helps with writing and editing tasks.",
-    url: "https://example.com/ai-writing-assistant",
+      "A project built by us for Bosch as part of a collaborative project between PESU Centre of Cognitive and Computational Intelligence (C3I)",
+    tech: "Agentic RAG",
+    url: "https://bosch-the-builder.vercel.app/",
   },
   {
-    title: "Smart Home Controller",
+    title: "AlienWear",
     description:
-      "An AI-powered system for managing smart home devices efficiently.",
-    url: "https://example.com/smart-home-controller",
+      "An AI-powered fashion e-commerce platform that leverages vector search to provide semantic search capabilities",
+    tech: "Naive RAG",
+    url: "https://github.com/samarth777/AlienWear",
   },
   {
-    title: "Personal Finance Advisor",
+    title: "Scholarize",
     description:
-      "An AI agent that provides personalized financial advice and planning.",
-    url: "https://example.com/finance-advisor",
+      "A platform to automate the extraction, processing, and summarization of publication records for faculty profile building. Being built for Smart India Hackathon",
+    tech: "Multi-Agent Framework",
+    url: "https://www.youtube.com/watch?v=uz_MYfRQu0U",
   },
 ];
 
@@ -48,7 +51,8 @@ export default function ProjectsPage() {
                   {project.title}
                 </CardTitle>
                 <CardDescription className="dark:text-gray-300">
-                  {project.description}
+                  <p className="mb-2">{project.description}</p>
+                  <p>{project.tech}</p>
                 </CardDescription>
               </CardHeader>
               <CardFooter className="dark:bg-gray-900 p-4">

@@ -1,101 +1,7 @@
-// "use client";
-
-// import { useState } from "react";
-// import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
-// import {
-//   Card,
-//   CardContent,
-//   CardFooter,
-//   CardHeader,
-//   CardTitle,
-// } from "@/components/ui/card";
-// import { Mic, Send } from "lucide-react";
-
-// export default function FAQPage() {
-//   const [query, setQuery] = useState("");
-//   const [response, setResponse] = useState("");
-//   const [isRecording, setIsRecording] = useState(false);
-
-//   const handleSubmit = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     // Here you would typically send the query to your AI agent for processing
-//     setResponse(`This is a placeholder response for the query: "${query}"`);
-//   };
-
-//   const handleAudioToggle = () => {
-//     if (isRecording) {
-//       // Stop recording and process audio
-//       setIsRecording(false);
-//       // In a real implementation, you would process the audio here
-//       setQuery("This is a simulated audio input query");
-//     } else {
-//       // Start recording
-//       setIsRecording(true);
-//     }
-//   };
-
-//   return (
-//     <div className="container mx-auto py-12 px-4">
-//       <h1 className="text-4xl font-bold mb-8 text-center">Course FAQs</h1>
-//       <Card className="max-w-2xl mx-auto">
-//         <CardHeader>
-//           <CardTitle>Ask about our Agentic AI Course</CardTitle>
-//         </CardHeader>
-//         <CardContent>
-//           <form onSubmit={handleSubmit} className="space-y-4">
-//             <div className="flex space-x-2">
-//               <Input
-//                 value={query}
-//                 onChange={(e) => setQuery(e.target.value)}
-//                 placeholder="Type a question or simply ask one using the mic button"
-//                 aria-label="Question input"
-//               />
-//               <Button
-//                 type="button"
-//                 variant="outline"
-//                 size="icon"
-//                 onClick={handleAudioToggle}
-//                 aria-label={isRecording ? "Stop recording" : "Start recording"}
-//               >
-//                 {isRecording ? (
-//                   <Send className="h-4 w-4" />
-//                 ) : (
-//                   <Mic className="h-4 w-4" />
-//                 )}
-//               </Button>
-//             </div>
-//           </form>
-//           {isRecording && (
-//             <div className="mt-4 flex justify-center items-center">
-//               <div className="relative w-16 h-16">
-//                 <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
-//                 <div className="absolute inset-2 bg-primary/40 rounded-full animate-pulse"></div>
-//                 <div className="absolute inset-4 bg-primary/60 rounded-full animate-pulse"></div>
-//                 <div className="absolute inset-6 bg-primary rounded-full"></div>
-//               </div>
-//             </div>
-//           )}
-//           {response && (
-//             <div className="mt-6 p-4 bg-muted rounded-md">
-//               <h3 className="font-semibold mb-2">Response:</h3>
-//               <p>{response}</p>
-//             </div>
-//           )}
-//         </CardContent>
-//         <CardFooter>
-//           <Button type="submit" onClick={handleSubmit}>
-//             Ask
-//           </Button>
-//         </CardFooter>
-//       </Card>
-//     </div>
-//   );
-// }
-
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -105,28 +11,97 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Mic, Send, Sparkles } from "lucide-react";
+import { Mic, Send, Sparkles, Loader } from "lucide-react";
 
 export default function FAQPage() {
   const [query, setQuery] = useState("");
   const [response, setResponse] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would typically send the query to your AI agent for processing
-    setResponse(`This is a placeholder response for the query: "${query}"`);
+  const handleSubmit = async (submittedQuery: string) => {
+    if (!submittedQuery) return;
+    setIsLoading(true);
+    setResponse("");
+
+    try {
+      const res = await axios.post(
+        "https://agent-interact.onrender.com/faq_answer",
+        {
+          question: submittedQuery,
+        }
+      );
+      setResponse(res.data.answer);
+    } catch (error) {
+      console.error("Error fetching FAQ answer:", error);
+      setResponse("An error occurred while fetching the answer.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleAudioToggle = () => {
+  const handleAudioToggle = async () => {
     if (isRecording) {
-      // Stop recording and process audio
-      setIsRecording(false);
-      // In a real implementation, you would process the audio here
-      setQuery("This is a simulated audio input query");
+      mediaRecorderRef.current?.stop();
     } else {
-      // Start recording
       setIsRecording(true);
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          const mediaRecorder = new MediaRecorder(stream);
+          mediaRecorderRef.current = mediaRecorder;
+
+          const chunks: Blob[] = [];
+          mediaRecorder.ondataavailable = (e) => {
+            chunks.push(e.data);
+          };
+
+          mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(chunks, { type: "audio/wav" });
+            setAudioBlob(audioBlob);
+            setIsRecording(false);
+            await sendAudioQuery(audioBlob);
+          };
+
+          mediaRecorder.start();
+        } catch (err) {
+          console.error("Error accessing microphone:", err);
+          setIsRecording(false);
+        }
+      } else {
+        console.error("getUserMedia not supported on your browser.");
+      }
+    }
+  };
+
+  const sendAudioQuery = async (audio: Blob) => {
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append("audio", new File([audio], "recording.wav"));
+
+    try {
+      const res = await axios.post(
+        "https://agent-interact.onrender.com/audio",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const translatedQuery = res.data.translated;
+      setQuery(translatedQuery);
+      handleSubmit(translatedQuery);
+    } catch (error) {
+      console.error("Error sending audio to backend:", error);
+      setResponse("An error occurred while processing the audio.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -140,11 +115,17 @@ export default function FAQPage() {
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
               <Sparkles className="w-6 h-6" />
-              Ask about our Agentic AI Course
+              Ask about our course
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(query);
+              }}
+              className="space-y-4"
+            >
               <div className="flex space-x-2">
                 <Input
                   value={query}
@@ -171,6 +152,13 @@ export default function FAQPage() {
                 </Button>
               </div>
             </form>
+
+            {isLoading && (
+              <div className="mt-4 flex justify-center">
+                <Loader className="animate-spin h-8 w-8 text-indigo-500" />
+              </div>
+            )}
+
             {isRecording && (
               <div className="mt-4 flex justify-center items-center">
                 <div className="relative w-16 h-16">
@@ -190,13 +178,14 @@ export default function FAQPage() {
               </div>
             )}
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex justify-center">
             <Button
               type="submit"
-              onClick={handleSubmit}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+              onClick={() => handleSubmit(query)}
+              className="w-1/3 bg-indigo-600 hover:bg-indigo-700 text-white"
+              disabled={isLoading}
             >
-              Ask
+              {isLoading ? "Processing..." : "Ask"}
             </Button>
           </CardFooter>
         </Card>
