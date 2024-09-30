@@ -36,7 +36,9 @@ export default function FAQPage() {
       setResponse(res.data.answer);
     } catch (error) {
       console.error("Error fetching FAQ answer:", error);
-      setResponse("An error occurred while fetching the answer.");
+      setResponse(
+        "An error occurred while fetching the answer. Please try again in a few moments!"
+      );
     } finally {
       setIsLoading(false);
     }

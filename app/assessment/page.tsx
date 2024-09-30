@@ -74,8 +74,38 @@ export default function AssessmentPage() {
     }
   };
 
-  // Function to submit an answer
+  // // Function to submit an answer
+  // const submitAnswer = async () => {
+  //   setLoading(true); // Start loading
+  //   try {
+  //     const currentQuestion = questions[currentQuestionIndex];
+  //     console.log(currentQuestion);
+  //     const response = await axios.post(
+  //       "https://agent-interact.onrender.com/evaluate_answer",
+  //       {
+  //         question: currentQuestion.question,
+  //         user_answer: userAnswer,
+  //         correct_answer:
+  //           currentQuestion.correct_answer || currentQuestion.model_answer,
+  //       }
+  //     );
+  //     setEvaluation(response.data);
+  //     setShowPopup(true);
+  //     setIsAnswerSubmitted(true);
+  //   } catch (error) {
+  //     console.error("Error submitting answer:", error);
+  //   } finally {
+  //     setLoading(false); // Stop loading
+  //   }
+  // };
+
   const submitAnswer = async () => {
+    if (!userAnswer.trim()) {
+      // Alert the user if no answer is provided
+      // alert("Please select or write an answer before submitting.");
+      return;
+    }
+
     setLoading(true); // Start loading
     try {
       const currentQuestion = questions[currentQuestionIndex];
@@ -284,11 +314,23 @@ export default function AssessmentPage() {
                   />
                 )}
               </div>
-              <Button
+              {/* <Button
                 type="button"
                 onClick={submitAnswer}
                 className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-700 dark:hover:bg-cyan-600 text-white transition-colors duration-300"
                 disabled={loading} // Disable button while loading
+              >
+                {loading ? (
+                  <Loader className="animate-spin h-5 w-5" />
+                ) : (
+                  "Submit Answer"
+                )}
+              </Button> */}
+              <Button
+                type="button"
+                onClick={submitAnswer}
+                className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-700 dark:hover:bg-cyan-600 text-white transition-colors duration-300"
+                disabled={loading || !userAnswer.trim()} // Disable button if loading or no answer
               >
                 {loading ? (
                   <Loader className="animate-spin h-5 w-5" />
