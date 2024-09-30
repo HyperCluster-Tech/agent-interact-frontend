@@ -70,7 +70,10 @@ export function MainNav() {
                   </Link>
                 ))}
                 <Button asChild>
-                  <Link href="/faq" onClick={() => setIsOpen(false)}>
+                  <Link
+                    href="https://pesu.io/courses/"
+                    onClick={() => setIsOpen(false)}
+                  >
                     Enroll Now
                   </Link>
                 </Button>

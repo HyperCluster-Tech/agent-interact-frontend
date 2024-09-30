@@ -30,16 +30,23 @@ const projects = [
     tech: "Multi-Agent Framework",
     url: "https://www.youtube.com/watch?v=uz_MYfRQu0U",
   },
+  {
+    title: "KissanDial",
+    description:
+      "A voice call-based AI agent assistant designed to empower farmers by providing them with vital information on agricultural subsidies, weather updates, and more",
+    tech: "Agentic RAG",
+    url: "https://medium.com/@samarth-p/ai-voice-agent-for-indian-farmers-bridging-the-information-gap-1cef04b394d3",
+  },
 ];
 
 export default function ProjectsPage() {
   return (
-    <div className="min-h-[calc(100vh-8rem)] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-black dark:to-blue-900 text-white py-16 px-4">
+    <div className="min-h-[calc(100vh-8rem)] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-black dark:to-blue-900 text-white py-6 px-4">
       <div className="container mx-auto">
-        <h1 className="text-5xl font-extrabold pb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-500 animate-pulse">
+        <h1 className="text-5xl font-extrabold pb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-500 animate-pulse">
           Our Agentic AI Projects
         </h1>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((project, index) => (
             <Card
               key={index}
@@ -59,7 +66,9 @@ export default function ProjectsPage() {
                   asChild
                   className="w-full bg-blue-600 hover:bg-blue-700 transition-colors duration-300"
                 >
-                  <Link href={project.url}>Explore Project</Link>
+                  <Link href={project.url} target="_blank">
+                    Explore Project
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>
